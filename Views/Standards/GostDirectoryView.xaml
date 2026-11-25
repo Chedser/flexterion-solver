@@ -1,0 +1,667 @@
+﻿<UserControl x:Class="MechCore.Views.Standards.GostDirectoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MechCore.Controls"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:core="clr-namespace:MechCore.Core">
+
+    <UserControl.Resources>
+        <ContextMenu x:Key="GostLinkContextMenu">
+            <MenuItem Header="Скопировать номер ГОСТа" Click="OnCopyGostNumberClick">
+                <MenuItem.Icon>
+                    <materialDesign:PackIcon Kind="ContentCopy" Width="15" Height="15" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+
+        <!-- Единый стиль ссылок для всего справочника -->
+        <Style TargetType="Hyperlink">
+            <Setter Property="Foreground" Value="#1565C0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextDecorations" Value="None" />
+            <Setter Property="ContextMenu" Value="{StaticResource GostLinkContextMenu}" />
+            <EventSetter Event="ContextMenuOpening" Handler="OnHyperlinkContextMenuOpening" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#0D47A1" />
+                    <Setter Property="TextDecorations" Value="Underline" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="1050">
+
+            <!-- ЗАГОЛОВОК МОДУЛЯ -->
+            <StackPanel Margin="0,0,0,18">
+                <TextBlock Text="Справочник ГОСТов (машиностроение и металлообработка)"
+                           FontSize="24" FontWeight="Bold" Foreground="#263238" />
+                <TextBlock Text="Нормативная база ЕСДП, резьбовых соединений, конструктивных элементов, материалов, крепежа и режущего инструмента"
+                           FontSize="13" Foreground="#546E7A" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- СТРОКА БЫСТРОГО ПОИСКА -->
+            <materialDesign:Card Padding="12,8" Margin="0,0,0,18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <materialDesign:PackIcon Kind="Magnify" Width="20" Height="20"
+                                             Foreground="#546E7A" VerticalAlignment="Center" Margin="4,0,10,0" />
+
+                    <TextBox x:Name="SearchBox"
+                             Grid.Column="1"
+                             FontSize="14"
+                             VerticalContentAlignment="Center"
+                             materialDesign:HintAssist.Hint="Поиск по номеру ГОСТа, названию или марке материала (например: 7798, фаска, Д16)..."
+                             materialDesign:TextFieldAssist.HasClearButton="True"
+                             BorderThickness="0"
+                             TextChanged="OnSearchTextChanged" />
+
+                    <TextBlock x:Name="SearchStatsText"
+                               Grid.Column="2"
+                               VerticalAlignment="Center"
+                               FontSize="12"
+                               Foreground="#78909C"
+                               Margin="12,0,6,0" />
+                </Grid>
+            </materialDesign:Card>
+            
+            <!-- ДВУХКОЛОНОЧНАЯ СЕТКА РАЗДЕЛОВ -->
+            <Grid x:Name="SectionsGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- ЛЕВАЯ КОЛОНКА РАЗДЕЛОВ -->
+                <StackPanel Grid.Column="0">
+                    <!-- Раздел 1: Допуски, посадки и шероховатость (ЕСДП) -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="RulerSquare" Width="20" Height="20" Foreground="#1565C0" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="1. Допуски, посадки и шероховатость (ЕСДП)"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/1_TolerancesAndFits/GOST_25346-2013.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 25346-2013
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Основные положения, ряды допусков и основные отклонения (база ЕСДП)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/1_TolerancesAndFits/GOST_25347-2013.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 25347-2013
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Поля допусков и рекомендуемые посадки в системе отверстия и вала."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/1_TolerancesAndFits/GOST_2789-73.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2789-73
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Шероховатость поверхности: параметры Ra, Rz, Rmax, базовые длины."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/1_TolerancesAndFits/GOST_24643-81.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 24643-81
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Допуски формы и расположения поверхностей (биение, соосность, перпендикулярность)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- Раздел 2: Резьбы и элементы резьбы -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="ScrewMachineFlatTop" Width="20" Height="20" Foreground="#1565C0" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="2. Резьбы и элементы резьбы"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/2_Threads/GOST_24705-2004.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 24705-2004
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Резьба метрическая: основные размеры, диаметры и шаги (M)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/2_Threads/GOST_16093-2004.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 16093-2004
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Допуски метрической резьбы с зазором (поля допусков 6H, 6g, 6e и др.)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/2_Threads/GOST_10549-80.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 10549-80
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Выход резьбы, сбеги, недорезы, проточки и фаски для наружной и внутренней резьбы."
+                                             FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/2_Threads/GOST_6357-81.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 6357-81
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Резьба трубная цилиндрическая (G): профили, размеры и классы точности A и B."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/2_Threads/GOST_24737-81.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 24737-81
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Резьба трапецеидальная однозаходная (Tr): основные размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    <!-- Раздел 3: Конструктивные элементы деталей -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="VectorSquare" Width="20" Height="20" Foreground="#1565C0" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="3. Конструктивные элементы деталей"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_10948-64.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 10948-64
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Радиусы закруглений и фаски (нормальный ряд размеров)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_8820-69.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8820-69
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Канавки для выхода шлифовального круга на цилиндрических и торцовых поверхностях."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_14034-74.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 14034-74
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Отверстия центровые (типы A, B, C, R): размеры и выбор центровочного сверла."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_23360-78.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 23360-78
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Соединения шпоночные с призматическими шпонками: размеры шпонок и пазов."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_19257-73.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 19257-73
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Отверстия под нарезание метрической резьбы: выбор диаметров свёрл."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_11284-75.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 11284-75
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Отверстия сквозные под крепёжные детали (ряды 1, 2 и 3)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/3_DesignElements/GOST_21474-75.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 21474-75
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Канавки для выхода резьбообразующего инструмента."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- Раздел 7: Крепёжные изделия и стопорные элементы -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="Bolt" Width="20" Height="20" Foreground="#00695C" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="7. Крепёжные изделия и стопорные элементы"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_7798-70.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 7798-70
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Болты с шестигранной головкой класса точности B: конструкция и размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_11738-84.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 11738-84
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Винты с цилиндрической головкой и шестигранным углублением под ключ."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_5915-70.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 5915-70
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Гайки шестигранные класса точности B: конструкция и размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_11371-78.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 11371-78
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Шайбы плоские нормальные (исполнения 1 и 2)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_6402-70.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 6402-70
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Шайбы пружинные (гроверы): лёгкие, нормальные, тяжёлые и особо тяжёлые."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_13942-86.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 13942-86
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Кольца пружинные упорные плоские наружные (стопорные кольца для валов)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/7_Fasteners/GOST_13943-86.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 13943-86
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Кольца пружинные упорные плоские внутренние (стопорные кольца для отверстий)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                </StackPanel>
+
+                <!-- ПРАВАЯ КОЛОНКА РАЗДЕЛОВ -->
+                <StackPanel Grid.Column="2">
+                    <!-- Раздел 4: Металлы, сплавы и сортамент проката -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="Atom" Width="20" Height="20" Foreground="#2E7D32" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="4. Металлы, сплавы и сортамент проката"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_1050-2013.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 1050-2013
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Металлопродукция из нелегированных конструкционных качественных сталей (Сталь 20, 45)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_4543-2016.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 4543-2016
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Металлопродукция из конструкционной легированной стали (40Х, 30ХГСА, 40ХН2МА)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_5632-2014.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 5632-2014
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Легированные нержавеющие стали и сплавы коррозионно-стойкие, жаростойкие и жаропрочные."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_2590-2006.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2590-2006
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Прокат сортовой стальной горячекатаный круглый: сортамент и предельные отклонения."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_4784-2019.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 4784-2019
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Алюминий и деформируемые алюминиевые сплавы (Д16, АМг6, В95, АД31)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_18175-78.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 18175-78
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Бронзы безоловянные, обрабатываемые давлением (БрАЖ9-4, БрАМц9-2, БрБ2)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_15527-2004.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 15527-2004
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Сплавы медно-цинковые (латуни), обрабатываемые давлением (Л63, ЛС59-1)."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_8509-93.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8509-93
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Уголки стальные горячекатаные равнополочные: сортамент."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_8240-97.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8240-97
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Швеллеры стальные горячекатаные: сортамент и размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/4_MetalsAndRolled/GOST_8639-82.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8639-82
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Трубы стальные квадратные: сортамент и предельные отклонения."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- Раздел 5: Металлорежущий инструмент и оснастка -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="Tools" Width="20" Height="20" Foreground="#E65100" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="5. Металлорежущий инструмент и оснастка"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                        <Hyperlink NavigateUri="Assets/GOSTs/5_CuttingTools/GOST_10902-77.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                            ГОСТ 10902-77
+                                        </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Свёрла спиральные с цилиндрическим хвостовиком (средняя серия): размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                            <Hyperlink NavigateUri="Assets/GOSTs/5_CuttingTools/GOST_17025-71.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                                ГОСТ 17025-71
+                                            </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Фрезы концевые с цилиндрическим хвостовиком: основные размеры и геометрия."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/5_CuttingTools/GOST_18879-73.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 18879-73
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Резцы токарные проходные упорные с пластинами из твёрдого сплава."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                            <Hyperlink NavigateUri="Assets/GOSTs/5_CuttingTools/GOST_25557-2006.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                                ГОСТ 25557-2006
+                                            </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Конусы инструментальные (конусы Морзе и метрические): основные размеры."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- Раздел 6: Измерительный инструмент и ЕСКД -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="FileDocumentOutline" Width="20" Height="20" Foreground="#6A1B9A" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="6. Измерительный инструмент и ЕСКД"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_166-89.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 166-89
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Штангенциркули (ШЦ-I, ШЦ-II, ШЦ-III): типы, параметры и погрешности."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_6507-90.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 6507-90
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Микрометры (МК, МЛ, МТ, МЗ): технические условия и пределы измерений."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_2.307-2011.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2.307-2011
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="ЕСКД. Нанесение размеров и предельных отклонений на чертежах."
+                                            FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_2.308-2011.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2.308-2011
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="ЕСКД. Указание на чертежах допусков формы и расположения поверхностей."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_2.305-2008.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2.305-2008
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="ЕСКД. Изображения — виды, разрезы, сечения."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_2.309-73.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2.309-73
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="ЕСКД. Обозначение шероховатости поверхностей на чертежах."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/6_MeasuringAndEskd/GOST_2.312-72.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 2.312-72
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="ЕСКД. Условные изображения и обозначения швов сварных соединений."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- Раздел 8: Подшипники и уплотнения -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                <materialDesign:PackIcon Kind="CogOutline" Width="20" Height="20" Foreground="#37474F" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="8. Подшипники и уплотнения"
+                                            FontSize="15.5" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/8_BearingsAndSeals/GOST_8338-75.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8338-75
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Подшипники шариковые радиальные однорядные: основные размеры."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/8_BearingsAndSeals/GOST_3325-85.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 3325-85
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Подшипники качения: поля допусков и технические требования к посадочным поверхностям."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,0,10">
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/8_BearingsAndSeals/GOST_9833-73.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 9833-73
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Кольца резиновые уплотнительные круглого сечения для гидравлики и пневматики."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock FontSize="13.5">
+                                <Hyperlink NavigateUri="Assets/GOSTs/8_BearingsAndSeals/GOST_8752-79.pdf" RequestNavigate="OnHyperlinkNavigate">
+                                    ГОСТ 8752-79
+                                </Hyperlink>
+                                </TextBlock>
+                                <TextBlock Text="Манжеты резиновые армированные для валов (сальники): размеры и посадки."
+                                           FontSize="12" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,2,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                </StackPanel>
+            </Grid>
+            <!-- Сообщение, если ничего не найдено -->
+            <TextBlock x:Name="EmptySearchMessage"
+                       Text="По вашему запросу стандарты не найдены."
+                       FontSize="14"
+                       Foreground="#78909C"
+                       HorizontalAlignment="Center"
+                       Margin="0,32,0,0"
+                       Visibility="Collapsed" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

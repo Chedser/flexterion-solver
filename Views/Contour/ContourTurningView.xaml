@@ -1,0 +1,324 @@
+﻿<UserControl x:Class="MechCore.Views.Contour.ContourTurningView"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:controls="clr-namespace:MechCore.Controls"
+            xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+            xmlns:core="clr-namespace:MechCore.Core">
+
+    <UserControl.Resources>
+        <core:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="1050">
+
+            <TextBlock Text="Токарная обработка по контуру (DXF)"
+                       FontSize="24" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,16" />
+
+            <materialDesign:Card Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="310" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- ЛЕВАЯ КОЛОНКА: ИМПОРТ И ПОИСК ОСЕВОЙ ЛИНИИ -->
+                    <StackPanel Grid.Column="0" Cursor="">
+
+                        <!-- Блок 1: Импорт DXF -->
+                        <TextBlock Text="1. Импорт чертежа"
+                                   FontSize="15" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,10" />
+
+                        <Button Command="{Binding OpenDxfCommand}"
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Height="38" HorizontalAlignment="Stretch" Margin="0,0,0,10" Cursor="Hand">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FolderOpenOutline" Width="18" Height="18" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="Загрузить DXF..." VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+
+                        <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,16">
+                            <TextBlock Text="{Binding StatusText}" FontSize="12" LineHeight="17" TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#37474F" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                <Setter Property="Foreground" Value="#C62828" />
+                                                <Setter Property="FontWeight" Value="SemiBold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+
+                        <!-- Блок 2: Осевая линия X0 и рабочий ноль Z0 -->
+                        <StackPanel Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="2. Осевая линия и ноль (X0, Z0)"
+                                       FontSize="15" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,8" />
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Поле минимального диаметра отверстия -->
+                                <TextBox Grid.Column="0"
+                                        Text="{Binding BoreDiameterOffsetText, UpdateSourceTrigger=PropertyChanged}"
+                                        core:NumericInputBehavior.IsDecimal="True"
+                                        materialDesign:HintAssist.Hint="Мин. Ø отверстия (мм)"
+                                        materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                        MaxLength="3"
+                                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                        FontSize="13" Padding="8,6"
+                                        ToolTip="Для втулок без осевой линии в DXF: укажите наименьший диаметр отверстия по чертежу, чтобы опустить ось X0 на его радиус" />
+
+                                <!-- Поле сдвига Z0 вправо -->
+                                <TextBox Grid.Column="2"
+                                        Text="{Binding ZeroZShiftText, UpdateSourceTrigger=PropertyChanged}"
+                                        core:NumericInputBehavior.IsDecimal="True"
+                                        materialDesign:HintAssist.Hint="Сдвиг Z0 вправо (мм)"
+                                        materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                        MaxLength="3"
+                                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                        FontSize="13" Padding="8,6"
+                                        ToolTip="Смещение рабочего нуля Z0 вправо от правого торца детали (мм)" />
+                            </Grid>
+
+                            <Button Content="Ось X0 по нижней линии (сплошной вал)"
+                                    Command="{Binding ResetZeroCommand}"
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    Height="32" FontSize="11.5" HorizontalAlignment="Stretch" Cursor="Hand" />
+                            
+                            <!-- Блок 3: Габариты детали -->
+                            <TextBlock Text="3. Габариты детали"
+                                        FontSize="15" FontWeight="Bold" Foreground="#263238" Margin="0,16,0,8" />
+
+                            <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                <StackPanel>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Длина детали (L):" FontSize="12.5" Foreground="#546E7A" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding PartLengthText}"
+                                                    FontSize="13.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Right" />
+                                    </DockPanel>
+
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock Text="Наружный диаметр (Ø max):" FontSize="12.5" Foreground="#546E7A" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding PartMaxDiameterText}"
+                                                 FontSize="13.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" />
+                                    </DockPanel>
+
+                                    <DockPanel>
+                                        <TextBlock Text="Мин. отверстие (Ø min):" FontSize="12.5" Foreground="#546E7A" />
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding PartMinDiameterText}"
+                                                    FontSize="13" FontWeight="SemiBold" Foreground="#37474F" HorizontalAlignment="Right" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </Border>
+                            <!-- Блок 4: Параметры заготовки -->
+                            <TextBlock Text="4. Параметры заготовки"
+           FontSize="15" FontWeight="Bold" Foreground="#263238" Margin="0,16,0,8" />
+
+                            <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="6" Padding="12">
+                                <StackPanel>
+                                    <!-- Переключатель Пруток / Труба -->
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <RadioButton Grid.Column="0" Content="Пруток"
+                         IsChecked="{Binding IsBarStock}"
+                         Style="{StaticResource MaterialDesignTabRadioButton}"
+                         FontSize="12.5" Padding="4" />
+                                        <RadioButton Grid.Column="1" Content="Труба (втулка)"
+                         IsChecked="{Binding IsTubeStock}"
+                         Style="{StaticResource MaterialDesignTabRadioButton}"
+                         FontSize="12.5" Padding="4" />
+                                    </Grid>
+
+                                    <!-- Чекбокс автоподбора проката -->
+                                    <CheckBox Content="Автоподбор проката по ГОСТ"
+                  IsChecked="{Binding IsAutoStock}"
+                  FontSize="12.5" Foreground="#37474F" Margin="0,0,0,10" />
+
+                                    <!-- Наружный диаметр заготовки + NumberPickerButton -->
+                                    <DockPanel Margin="0,0,0,8">
+                                        <controls:NumberPickerButton DockPanel.Dock="Right"
+                                         SelectedValue="{Binding StockOuterDiaText}"
+                                         Margin="6,0,0,0" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding StockOuterDiaText, UpdateSourceTrigger=PropertyChanged}"
+                     core:NumericInputBehavior.IsDecimal="True"
+                     materialDesign:HintAssist.Hint="Наружный Ø заготовки (мм)"
+                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     FontSize="13" Padding="8,6" />
+                                    </DockPanel>
+
+                                    <!-- Внутренний диаметр (только для трубы) -->
+                                    <DockPanel Margin="0,0,0,8"
+                   Visibility="{Binding IsTubeStock, Converter={StaticResource BoolToVis}}">
+                                        <controls:NumberPickerButton DockPanel.Dock="Right"
+                                         SelectedValue="{Binding StockInnerDiaText}"
+                                         Margin="6,0,0,0" VerticalAlignment="Center" />
+                                        <TextBox Text="{Binding StockInnerDiaText, UpdateSourceTrigger=PropertyChanged}"
+                     core:NumericInputBehavior.IsDecimal="True"
+                     materialDesign:HintAssist.Hint="Внутренний Ø трубы (мм)"
+                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     FontSize="13" Padding="8,6" />
+                                    </DockPanel>
+
+                                    <!-- Длина заготовки и припуск на правый торец -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox Grid.Column="0"
+                     Text="{Binding StockLengthText, UpdateSourceTrigger=PropertyChanged}"
+                     core:NumericInputBehavior.IsDecimal="True"
+                     materialDesign:HintAssist.Hint="Длина Lзаг (мм)"
+                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     FontSize="13" Padding="8,6" />
+
+                                        <TextBox Grid.Column="2"
+                     Text="{Binding FaceAllowanceText, UpdateSourceTrigger=PropertyChanged}"
+                     core:NumericInputBehavior.IsDecimal="True"
+                     materialDesign:HintAssist.Hint="Припуск торец (мм)"
+                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     FontSize="13" Padding="8,6"
+                     ToolTip="Припуск на торцевание справа от детали до Z0 (мм)" />
+                                    </Grid>
+
+                    <!-- Предупреждение о нехватке припуска -->
+                    <Border Background="#FFEBEE" BorderBrush="#EF9A9A" BorderThickness="1" CornerRadius="4"
+                Padding="8,6" Margin="0,10,0,0"
+                Visibility="{Binding HasStockWarning, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding StockWarningMessage}"
+                       FontSize="12" Foreground="#C62828" TextWrapping="Wrap" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ПРАВАЯ КОЛОНКА: КОНТУР И ОСИ X0 / Z0 -->
+                    <Border Grid.Column="2"
+                            Background="#FAFAFA" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8"
+                            Height="440" ClipToBounds="True">
+                        <Grid>
+                            <TextBlock Text="Контур детали и ось вращения X0"
+                                       FontSize="11.5" Foreground="#78909C"
+                                       Margin="12,8,0,0" VerticalAlignment="Top" />
+
+                            <!-- Слой зелёных осей X0, Z0 и точки рабочего нуля -->
+                            <Canvas Width="540" Height="440"
+                                    Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}">
+
+                                <!-- 1. ЗАГОТОВКА И КУЛАЧКИ ПАТРОНА (на заднем плане) -->
+                                <Rectangle Canvas.Left="{Binding StockRender.ScreenLeft}"
+               Canvas.Top="{Binding StockRender.ScreenTop}"
+               Width="{Binding StockRender.ScreenWidth}"
+               Height="{Binding StockRender.ScreenHeight}"
+               Fill="#140083"
+               Stroke="#00838F"
+               StrokeThickness="1.5"
+               StrokeDashArray="5,3"
+               Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}" />
+
+                                <Rectangle Canvas.Left="{Binding StockRender.ScreenLeft}"
+               Canvas.Top="{Binding StockRender.BottomScreenTop}"
+               Width="{Binding StockRender.ScreenWidth}"
+               Height="{Binding StockRender.ScreenHeight}"
+               Fill="#1400838F"
+               Stroke="#00838F"
+               StrokeThickness="1.5"
+               StrokeDashArray="5,3"
+               Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}" />
+
+                                <Rectangle Canvas.Left="{Binding StockRender.ChuckLeft}"
+               Canvas.Top="{Binding StockRender.ChuckTop}"
+               Width="{Binding StockRender.ChuckWidth}"
+               Height="{Binding StockRender.ChuckHeight}"
+               Fill="#CFD8DC"
+               Stroke="#455A64"
+               StrokeThickness="1.5"
+               RadiusX="2" RadiusY="2"
+               Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}" />
+
+                                <Rectangle Canvas.Left="{Binding StockRender.ChuckLeft}"
+                                            Canvas.Top="{Binding StockRender.BottomChuckTop}"
+                                            Width="{Binding StockRender.ChuckWidth}"
+                                            Height="{Binding StockRender.ChuckHeight}"
+                                            Fill="#CFD8DC"
+                                            Stroke="#455A64"
+                                            StrokeThickness="1.5"
+                                            RadiusX="2" RadiusY="2"
+                                            Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}" />
+
+                                <TextBlock Canvas.Left="{Binding StockRender.ScreenLeft}"
+                                            Canvas.Top="8"
+                                            Text="{Binding StockRender.OuterDiaLabel}"
+                                            FontSize="12" FontWeight="SemiBold" Foreground="#006064"
+                                            Visibility="{Binding HasLoadedContour, Converter={StaticResource BoolToVis}}" />
+
+
+                                <Line X1="10" Y1="{Binding ScreenAxisY}" X2="530" Y2="{Binding ScreenAxisY}"
+                                      Stroke="#2E7D32" StrokeThickness="1.4" StrokeDashArray="8 3 1 3" />
+                                <TextBlock Text="X0" Canvas.Left="14" Canvas.Top="{Binding ScreenAxisY}" Margin="0,-16,0,0"
+                                           FontFamily="Consolas" FontSize="11" FontWeight="Bold" Foreground="#2E7D32" />
+
+                                <Line X1="{Binding ScreenZeroZ_X}" Y1="16" X2="{Binding ScreenZeroZ_X}" Y2="424"
+                                      Stroke="#2E7D32" StrokeThickness="1.4" StrokeDashArray="8 3 1 3" />
+                                <TextBlock Text="Z0" Canvas.Left="{Binding ScreenZeroZ_X}" Canvas.Top="18" Margin="5,0,0,0"
+                                           FontFamily="Consolas" FontSize="11" FontWeight="Bold" Foreground="#2E7D32" />
+
+                                <Ellipse Width="9" Height="9" Fill="#D32F2F"
+                                         Canvas.Left="{Binding ScreenZeroZ_X}" Canvas.Top="{Binding ScreenAxisY}"
+                                         Margin="-4.5,-4.5,0,0" />
+                            </Canvas>
+
+                            <!-- Слой сегментов контура -->
+                            <ItemsControl ItemsSource="{Binding Segments}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas Width="540" Height="440" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Line Visibility="{Binding IsLine, Converter={StaticResource BoolToVis}}"
+                                                  X1="{Binding ScreenX1}" Y1="{Binding ScreenY1}"
+                                                  X2="{Binding ScreenX2}" Y2="{Binding ScreenY2}"
+                                                  Stroke="#1565C0" StrokeThickness="2.2"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+
+                                            <Path Visibility="{Binding IsArc, Converter={StaticResource BoolToVis}}"
+                                                  Data="{Binding ArcPathData}"
+                                                  Stroke="#1565C0" StrokeThickness="2.2"
+                                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+
+                </Grid>
+            </materialDesign:Card>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

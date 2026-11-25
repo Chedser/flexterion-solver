@@ -1,0 +1,74 @@
+﻿<Application x:Class="MechCore.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:MechCore.ViewModels.Tolerances"
+             xmlns:views="clr-namespace:MechCore.Views.Tolerances"
+             xmlns:vmThreads="clr-namespace:MechCore.ViewModels.Threads"
+             xmlns:viewThreads="clr-namespace:MechCore.Views.Threads"
+             xmlns:vmMaterials="clr-namespace:MechCore.ViewModels.Materials"
+             xmlns:viewMaterials="clr-namespace:MechCore.Views.Materials"
+             xmlns:vmGeometry="clr-namespace:MechCore.ViewModels.Geometry"
+             xmlns:viewGeometry="clr-namespace:MechCore.Views.Geometry"
+             xmlns:vmTurning="clr-namespace:MechCore.ViewModels.Turning"
+             xmlns:viewTurning="clr-namespace:MechCore.Views.Turning"
+             xmlns:vmContour="clr-namespace:MechCore.ViewModels.Contour"
+             xmlns:viewContour="clr-namespace:MechCore.Views.Contour"
+             xmlns:vmMilling="clr-namespace:MechCore.ViewModels.Milling"
+             xmlns:viewMilling="clr-namespace:MechCore.Views.Milling"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Базовая тема и стили контролов -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
+
+                <!-- Цвета для инженерного интерфейса -->
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.BlueGrey.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Amber.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Связь ViewModel с View (строго внутри ResourceDictionary!) -->
+            <DataTemplate DataType="{x:Type vm:TolerancesViewModel}">
+                <views:TolerancesView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmThreads:ThreadsViewModel}">
+                <viewThreads:ThreadsView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmMaterials:MaterialsViewModel}">
+                <viewMaterials:MaterialsView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmGeometry:GeometryViewModel}">
+                <viewGeometry:GeometryView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmTurning:TurningHeaderViewModel}">
+                <viewTurning:TurningHeaderView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmTurning:TurningCuttingViewModel}">
+                <viewTurning:TurningCuttingView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmContour:ContourTurningViewModel}">
+                <viewContour:ContourTurningView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmMilling:MillingHeaderViewModel}">
+                <viewMilling:MillingHeaderView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmMilling:MillingCuttingViewModel}">
+                <viewMilling:MillingCuttingView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vmMilling:MillingGeometryViewModel}">
+                <viewMilling:MillingGeometryView />
+            </DataTemplate>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

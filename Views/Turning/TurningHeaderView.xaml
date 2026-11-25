@@ -1,0 +1,438 @@
+﻿<UserControl x:Class="MechCore.Views.Turning.TurningHeaderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MechCore.Controls"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:core="clr-namespace:MechCore.Core">
+
+    <UserControl.Resources>
+        <core:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="1050">
+
+            <!-- ЗАГОЛОВОК МОДУЛЯ -->
+            <StackPanel Margin="0,0,0,18">
+                <TextBlock Text="Генератор шапки токарной программы (ЧПУ)"
+                           FontSize="24" FontWeight="Bold" Foreground="#263238" />
+                <TextBlock Text="Формирование безопасного начала управляющей программы (ISO / Fanuc) с проверкой совместимости команд"
+                           FontSize="13" Foreground="#546E7A" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- ОСНОВНАЯ ДВУХКОЛОНОЧНАЯ СЕТКА -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="460" />
+                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- ЛЕВАЯ КОЛОНКА: НАСТРОЙКИ ПАРАМЕТРОВ ШАПКИ -->
+                <StackPanel Grid.Column="0">
+
+                    <!-- БЛОК 1: ВЫБОР СИСТЕМЫ ЧПУ И НОМЕР ПРОГРАММЫ -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="1. Система ЧПУ и идентификация"
+                                           FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                                <Button DockPanel.Dock="Right"
+                                        Content="Сброс"
+                                        Command="{Binding ResetDefaultsCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        Height="28" Padding="10,0" FontSize="12" Cursor="Hand" />
+                            </DockPanel>
+
+                            <ComboBox ItemsSource="{Binding SystemOptions}"
+                                      SelectedItem="{Binding SelectedSystem}"
+                                      DisplayMemberPath="Title"
+                                      materialDesign:HintAssist.Hint="Диалект G-кодов стойки ЧПУ"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      Margin="0,0,0,8" />
+
+                            <TextBlock Text="{Binding SelectedSystem.Subtitle}"
+                                       FontSize="12" Foreground="#546E7A" TextWrapping="Wrap"
+                                       Margin="0,0,0,14" />
+
+                            <!-- Номер программы -->
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="130" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <CheckBox Content="Номер программы (Oxxxx)"
+                                                  IsChecked="{Binding IncludeProgramNumber}"
+                                                  FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                        <TextBlock Text="Добавляет символ начала файла % и 4-значный номер программы."
+                                                   FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                                   Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+
+                                    <TextBox Grid.Column="1"
+                                             Text="{Binding ProgramNumberRaw, UpdateSourceTrigger=PropertyChanged}"
+                                             IsEnabled="{Binding IncludeProgramNumber}"
+                                             MaxLength="4"
+                                             core:NumericInputBehavior.IsInteger="True"
+                                             materialDesign:HintAssist.Hint="0001"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             VerticalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- БЛОК 2: КОДЫ СТРОКИ БЕЗОПАСНОСТИ -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="2. Строка безопасности (сброс режимов)"
+                                       FontSize="16" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,12" />
+
+                            <!-- G18 -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="G18 — Рабочая плоскость XZ"
+                                          IsChecked="{Binding UseG18}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Определяет токарную плоскость (диаметр X и длина Z) для правильного расчёта дуг G02/G03."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G21 -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="G21 — Метрическая система (мм)"
+                                          IsChecked="{Binding UseG21}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Переключает стойку в миллиметры. Защищает от работы в дюймах (G20), где размеры вырастают в 25,4 раза."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G40 -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="G40 — Отмена коррекции на радиус пластины"
+                                          IsChecked="{Binding UseG40}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Сбрасывает активную компенсацию G41/G42 от прерванной программы, чтобы резец не сместился в сторону."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G80 -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="G80 — Отмена постоянных циклов"
+                                          IsChecked="{Binding UseG80}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Отключает циклы сверления или нарезания резьбы, чтобы станок не начал цикл на холостом подводе."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G97 -->
+                            <StackPanel Margin="0,0,0,10">
+                                <CheckBox Content="G97 — Постоянные обороты (сброс G96)"
+                                          IsChecked="{Binding UseG97Safety}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Отменяет режим постоянной скорости резания, предотвращая резкий разгон патрона при подходе к центру."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G99 / G95 -->
+                            <StackPanel Margin="0,0,0,12">
+                                <CheckBox IsChecked="{Binding UseFeedPerRev}" FontWeight="SemiBold" Foreground="#263238" Cursor="Hand">
+                                    <TextBlock>
+                                        <Run Text="{Binding FeedPerRevCodeLabel, Mode=OneWay}" />
+                                        <Run Text=" — Подача на оборот (мм/об)" />
+                                    </TextBlock>
+                                </CheckBox>
+                                <TextBlock Text="Задаёт подачу в миллиметрах за 1 оборот шпинделя (стандарт для точения). Защищает от минутной подачи."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+
+                            <!-- G90 (отключен по умолчанию, с предупреждением) -->
+                            <Border Background="#FFF8E1" BorderBrush="#FFE082" BorderThickness="1" CornerRadius="6" Padding="10,8">
+                                <StackPanel>
+                                    <CheckBox Content="G90 — Абсолютные координаты"
+                                              IsChecked="{Binding UseG90}"
+                                              IsEnabled="{Binding IsG90Allowed}"
+                                              FontWeight="SemiBold" Foreground="#E65100" Cursor="Hand" />
+                                    <TextBlock Text="(Внимание: только для System B/C! В стандартной Fanuc System A за абсолют отвечают оси X/Z, а код G90 запускает цикл продольного точения и может привести к аварии)"
+                                               FontSize="11.5" Foreground="#BF360C" TextWrapping="Wrap" Margin="24,3,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+                    <!-- БЛОК 3: РАБОЧАЯ СИСТЕМА КООРДИНАТ И ВЫХОД В НОЛЬ -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="3. Привязка детали и выход в ноль станка"
+                                       FontSize="16" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,12" />
+
+                            <!-- Выпадающий список РСК -->
+                            <ComboBox ItemsSource="{Binding WorkOffsets}"
+                                      SelectedItem="{Binding SelectedWorkOffset}"
+                                      materialDesign:HintAssist.Hint="Рабочая система координат (РСК)"
+                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                      Margin="0,0,0,6" />
+                            <TextBlock Text="Загружает смещение нуля детали (Z0 на правом торце), записанное наладчиком в таблицу привязок."
+                                       FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,0,0,14"
+                                       Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+
+                            <!-- Безопасный выход в ноль станка -->
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                <StackPanel>
+                                    <CheckBox Content="Безопасный отвод в ноль станка (G28)"
+                                              IsChecked="{Binding UseSafeHomeReturn}"
+                                              FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                    <TextBlock Text="Сначала отводит резец вверх по X (U0), затем вправо от патрона по Z (W0) двумя отдельными кадрами, чтобы исключить диагональное столкновение при смене инструмента."
+                                               FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                               Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+
+                                    <!-- Выбор синтаксиса отвода (активен только в ручном режиме) -->
+                                    <ComboBox ItemsSource="{Binding HomeSyntaxOptions}"
+                                              SelectedItem="{Binding SelectedHomeSyntax}"
+                                              IsEnabled="{Binding IsManualSystem}"
+                                              Visibility="{Binding UseSafeHomeReturn, Converter={StaticResource BoolToVis}}"
+                                              materialDesign:HintAssist.Hint="Формат команд отвода"
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                              Margin="0,10,0,0" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- БЛОК 4: ОГРАНИЧЕНИЕ ОБОРОТОВ И ВЫЗОВ ИНСТРУМЕНТА -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="4. Ограничение оборотов и инструмент"
+                                       FontSize="16" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,12" />
+
+                            <!-- Ограничение максимальных оборотов G50 / G92 -->
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <CheckBox Content="{Binding RpmLimitHeaderLabel}"
+                                              IsChecked="{Binding UseMaxRpmLimit}"
+                                              FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                    <TextBlock Text="Жёстко ограничивает максимальную частоту вращения патрона (об/мин), чтобы заготовку не вырвало при подходе резца к центру в режиме G96. При G97 носит страховочный характер."
+                                               FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,10"
+                                               Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+
+                                    <Grid IsEnabled="{Binding UseMaxRpmLimit}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <ComboBox Grid.Column="0"
+                                                  ItemsSource="{Binding RpmLimitCodeOptions}"
+                                                  SelectedItem="{Binding SelectedRpmLimitCode}"
+                                                  IsEnabled="{Binding IsManualSystem}"
+                                                  materialDesign:HintAssist.Hint="G-код"
+                                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                                        <TextBox Grid.Column="2"
+                                                 Text="{Binding MaxRpmRaw, UpdateSourceTrigger=PropertyChanged}"
+                                                 MaxLength="5"
+                                                 core:NumericInputBehavior.IsInteger="True"
+                                                 materialDesign:HintAssist.Hint="Макс. обороты S (об/мин)"
+                                                 materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Вызов инструмента и корректора (выпадающие списки) -->
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10">
+                                <StackPanel>
+                                    <CheckBox Content="Вызов инструмента и корректора (Txxxx)"
+                                              IsChecked="{Binding IncludeToolCall}"
+                                              FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                    <TextBlock Text="Поворачивает револьверную головку на позицию инструмента (первые 2 цифры) и применяет его вылет из таблицы корректоров (последние 2 цифры)."
+                                               FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,10"
+                                               Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+
+                                    <Grid IsEnabled="{Binding IncludeToolCall}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <ComboBox Grid.Column="0"
+                                                  ItemsSource="{Binding ToolNumbers}"
+                                                  SelectedItem="{Binding SelectedToolNumber}"
+                                                  materialDesign:HintAssist.Hint="Позиция инструмента"
+                                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+
+                                        <ComboBox Grid.Column="2"
+                                                  ItemsSource="{Binding OffsetNumbers}"
+                                                  SelectedItem="{Binding SelectedOffsetNumber}"
+                                                  materialDesign:HintAssist.Hint="Номер корректора"
+                                                  Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- БЛОК 5: ЗАПУСК ШПИНДЕЛЯ И ПОДАЧА СОЖ -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <CheckBox Content="5. Запуск шпинделя и СОЖ"
+                                      IsChecked="{Binding IncludeSpindleStart}"
+                                      FontSize="16" FontWeight="Bold" Foreground="#263238" Cursor="Hand"
+                                      Margin="0,0,0,10" />
+
+                            <StackPanel IsEnabled="{Binding IncludeSpindleStart}">
+                                <!-- Переключатель режима G97 / G96 в стиле GeometryView -->
+                                <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="G97 (об/мин)" FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding UseConstantSurfaceSpeed, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                            <TextBlock Grid.Column="2" Text="G96 (Vc, м/мин)" FontSize="12.5" FontWeight="SemiBold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                        </Grid>
+
+                                        <TextBlock Text="G97 — постоянные обороты (для сверления, резьбы, отрезки). G96 — постоянная скорость резания (стандарт для точения наружных и внутренних контуров; требует G50/G92)."
+                                                   FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                   Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Значение S и направление M03 / M04 -->
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding SpeedValueRaw, UpdateSourceTrigger=PropertyChanged}"
+                                             MaxLength="5"
+                                             core:NumericInputBehavior.IsInteger="True"
+                                             materialDesign:HintAssist.Hint="{Binding SpeedInputHint}"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+
+                                    <ComboBox Grid.Column="2"
+                                              ItemsSource="{Binding SpindleDirections}"
+                                              SelectedItem="{Binding SelectedSpindleDirection}"
+                                              materialDesign:HintAssist.Hint="Направление вращения"
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}" />
+                                </Grid>
+
+                                <!-- Подача СОЖ M08 -->
+                                <CheckBox Content="M08 — Включить подачу СОЖ"
+                                          IsChecked="{Binding UseCoolant}"
+                                          FontWeight="SemiBold" Foreground="#263238" Cursor="Hand" />
+                                <TextBlock Text="Включает подачу смазочно-охлаждающей жидкости перед подводом инструмента к заготовке."
+                                           FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="24,2,0,0"
+                                           Visibility="{Binding IsOperatorMode, Converter={StaticResource BoolToVis}}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </materialDesign:Card>
+                </StackPanel>
+
+                <!-- ПРАВАЯ КОЛОНКА: РЕЗУЛЬТАТ И ПОЯСНЕНИЯ -->
+                <StackPanel Grid.Column="2">
+
+                    <!-- КАРТОЧКА ВЫВОДА ЧИСТОГО G-КОДА И КНОПКА КОПИРОВАНИЯ -->
+                    <materialDesign:Card Padding="18" Margin="0,0,0,16">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,12">
+                                <TextBlock Text="Сгенерированный G-код (Fanuc / ISO)"
+                                           FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Скопировано!"
+                                               Foreground="#2E7D32"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,10,0"
+                                               Visibility="{Binding IsCopySuccessVisible, Converter={StaticResource BoolToVis}}" />
+
+                                    <Button Command="{Binding CopyGCodeCommand}"
+                                            Style="{StaticResource MaterialDesignRaisedButton}"
+                                            Height="32" Padding="12,0" Cursor="Hand">
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="ContentCopy" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="Копировать" FontSize="12.5" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </DockPanel>
+
+                            <Border Background="#263238" CornerRadius="6" Padding="14,12">
+                                <TextBox Text="{Binding GeneratedGCode, Mode=OneWay}"
+                                         IsReadOnly="True"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         Foreground="#ECEFF1"
+                                         FontFamily="Consolas"
+                                         FontSize="14"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         MinHeight="150" />
+                            </Border>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+                    <!-- КАРТОЧКА ПОСТРОЧНОЙ РАСШИФРОВКИ ДЛЯ НОВИЧКА -->
+                    <materialDesign:Card Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="Построчный разбор программы"
+                                       FontSize="16" FontWeight="Bold" Foreground="#263238" Margin="0,0,0,4" />
+                            <TextBlock Text="Что делает каждый кадр на реальном токарном станке:"
+                                       FontSize="12" Foreground="#546E7A" Margin="0,0,0,12" />
+
+                            <ItemsControl ItemsSource="{Binding LineExplanations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="200" />
+                                                    <ColumnDefinition Width="12" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Code}"
+                                                           FontFamily="Consolas"
+                                                           FontSize="13"
+                                                           FontWeight="Bold"
+                                                           Foreground="#1565C0"
+                                                           VerticalAlignment="Center" />
+
+                                                <TextBlock Grid.Column="2"
+                                                           Text="{Binding Description}"
+                                                           FontSize="12"
+                                                           Foreground="#37474F"
+                                                           TextWrapping="Wrap"
+                                                           VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </materialDesign:Card>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

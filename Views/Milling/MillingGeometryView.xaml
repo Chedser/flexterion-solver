@@ -1,0 +1,1374 @@
+﻿<UserControl x:Class="MechCore.Views.Milling.MillingGeometryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:MechCore.Controls"
+             xmlns:materialDesign="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf"
+             xmlns:core="clr-namespace:MechCore.Core">
+    <UserControl.Resources>
+        <core:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24">
+        <StackPanel MaxWidth="1050" Cursor="">
+
+            <!-- ЗАГОЛОВОК МОДУЛЯ -->
+            <StackPanel Margin="0,0,0,18">
+                <TextBlock Text="Фрезерная геометрия и циклы ЧПУ" FontSize="24" FontWeight="Bold" Foreground="#263238" />
+                <TextBlock Text="Расчёт координат отверстий (PCD / сетка), винтового врезания, резьбофрезерования (G84) и высоты гребешка 3D"
+                           FontSize="13" Foreground="#546E7A" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <!-- КАРТОЧКА 1: КООРДИНАТЫ ОТВЕРСТИЙ (ОКРУЖНОСТЬ PCD И ПРЯМОУГОЛЬНАЯ СЕТКА) -->
+            <materialDesign:Card Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <TextBlock Text="1. Координаты отверстий (делительная окружность PCD и сетка)"
+                                   FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                        <Border DockPanel.Dock="Right" Background="#ECEFF1" CornerRadius="6" Padding="10,4">
+                            <TextBlock Text="{Binding Card1BadgeText}"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="#37474F" />
+                        </Border>
+                    </DockPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="460" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ЛЕВАЯ КОЛОНКА КАРТОЧКИ 1 -->
+                        <StackPanel Grid.Column="0">
+                            <!-- БЛОК 1.1: Главный переключатель PCD / Сетка и базовая точка X0, Y0 -->
+                            <Border Background="#E3F2FD" BorderBrush="#90CAF9" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Окружность (PCD)" FontSize="12.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsGridMode, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                    <TextBlock Grid.Column="2" Text="Прямоугольная сетка" FontSize="12.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Базовая точка (центр окружности или угол сетки) -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                        Text="{Binding PatternOriginXText, UpdateSourceTrigger=PropertyChanged}"
+                                        materialDesign:HintAssist.Hint="{Binding OriginXHint}"
+                                        materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                        MaxLength="10" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding PatternOriginYText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="{Binding OriginYHint}"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="10" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <!-- БЛОК 1.2: Параметры делительной окружности (PCD) -->
+                            <StackPanel Visibility="{Binding IsCirclePcdMode, Converter={StaticResource BoolToVis}}">
+                                <TextBox Text="{Binding PcdDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Диаметр делительной окружности PCD (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="10" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,10" />
+
+                                <TextBlock Text="Количество отверстий N (типовой ряд):" FontSize="12" Foreground="#546E7A" Margin="0,0,0,6" />
+                                <UniformGrid Columns="5" Margin="0,0,0,8">
+                                    <Button Content="3" Command="{Binding SelectHoleCountPresetCommand}" CommandParameter="3"
+                                            Background="{Binding Cnt3Bg}" Foreground="{Binding Cnt3Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="4" Command="{Binding SelectHoleCountPresetCommand}" CommandParameter="4"
+                                            Background="{Binding Cnt4Bg}" Foreground="{Binding Cnt4Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="6" Command="{Binding SelectHoleCountPresetCommand}" CommandParameter="6"
+                                            Background="{Binding Cnt6Bg}" Foreground="{Binding Cnt6Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="8" Command="{Binding SelectHoleCountPresetCommand}" CommandParameter="8"
+                                            Background="{Binding Cnt8Bg}" Foreground="{Binding Cnt8Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="12" Command="{Binding SelectHoleCountPresetCommand}" CommandParameter="12"
+                                            Background="{Binding Cnt12Bg}" Foreground="{Binding Cnt12Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                </UniformGrid>
+
+                                <TextBox Text="{Binding PcdHoleCountText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsInteger="True"
+                                         materialDesign:HintAssist.Hint="Количество отверстий N (шт)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="4" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,10" />
+
+                                <TextBlock Text="Начальный угол первого отверстия α0 (от оси +X):" FontSize="12" Foreground="#546E7A" Margin="0,0,0,6" />
+                                <UniformGrid Columns="4" Margin="0,0,0,8">
+                                    <Button Content="0°" Command="{Binding SelectStartAnglePresetCommand}" CommandParameter="0"
+                                            Background="{Binding Ang0Bg}" Foreground="{Binding Ang0Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="30°" Command="{Binding SelectStartAnglePresetCommand}" CommandParameter="30"
+                                            Background="{Binding Ang30Bg}" Foreground="{Binding Ang30Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="45°" Command="{Binding SelectStartAnglePresetCommand}" CommandParameter="45"
+                                            Background="{Binding Ang45Bg}" Foreground="{Binding Ang45Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="90°" Command="{Binding SelectStartAnglePresetCommand}" CommandParameter="90"
+                                            Background="{Binding Ang90Bg}" Foreground="{Binding Ang90Fg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                </UniformGrid>
+
+                                <TextBox Text="{Binding PcdStartAngleText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Начальный угол α0 (°)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,10" />
+
+                                <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <CheckBox Content="Равномерно по полному кругу (шаг 360° / N)"
+                                                  IsChecked="{Binding UseFullCircle, Mode=TwoWay}"
+                                                  FontSize="12.5" FontWeight="SemiBold" Margin="0,0,0,8" Cursor="Hand" />
+
+                                        <TextBox Text="{Binding PcdCustomStepAngleText, UpdateSourceTrigger=PropertyChanged}"
+                                                 Visibility="{Binding IsCustomSectorAngle, Converter={StaticResource BoolToVis}}"
+                                                 core:NumericInputBehavior.IsDecimal="True"
+                                                 materialDesign:HintAssist.Hint="Угловой шаг сектора между отверстиями (°)"
+                                                 materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                                 MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="13.5" Padding="10,8" Margin="0,0,0,10" />
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="По часовой (CW)" FontSize="12" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                            <CheckBox Grid.Column="1" IsChecked="{Binding IsPcdCounterClockwise, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                            <TextBlock Grid.Column="2" Text="Против часовой (CCW)" FontSize="12" FontWeight="SemiBold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- БЛОК 1.3: Параметры прямоугольной сетки (Grid) -->
+                            <StackPanel Visibility="{Binding IsGridMode, Converter={StaticResource BoolToVis}}">
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding GridCountXText, UpdateSourceTrigger=PropertyChanged}"
+                                             core:NumericInputBehavior.IsInteger="True"
+                                             materialDesign:HintAssist.Hint="Число столбцов по X (Nx)"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             MaxLength="4" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                    <TextBox Grid.Column="2"
+                                             Text="{Binding GridCountYText, UpdateSourceTrigger=PropertyChanged}"
+                                             core:NumericInputBehavior.IsInteger="True"
+                                             materialDesign:HintAssist.Hint="Число строк по Y (Ny)"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             MaxLength="4" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                                </Grid>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding GridStepXText, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Шаг по X — ΔX (мм)"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             MaxLength="10" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                    <TextBox Grid.Column="2"
+                                             Text="{Binding GridStepYText, UpdateSourceTrigger=PropertyChanged}"
+                                             materialDesign:HintAssist.Hint="Шаг по Y — ΔY (мм)"
+                                             materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                             MaxLength="10" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                                </Grid>
+
+                                <TextBox Text="{Binding GridRotationAngleText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Угол поворота сетки α (°)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,10" />
+
+                                <Border Background="#F5F7F8" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                                    <CheckBox Content="Оптимальный обход «змейкой» (без холостых возвратов)"
+                                              IsChecked="{Binding UseZigZagOrder, Mode=TwoWay}"
+                                              FontSize="12.5" Cursor="Hand" />      
+                                </Border>
+                            </StackPanel>
+
+                            <!-- БЛОК 1.4: Общие чекбоксы, предупреждения и ошибки -->
+                            <Border Background="#F5F7F8" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                                <CheckBox Content="Первая точка задана в кадре цикла (исключить из списка)"
+                                          IsChecked="{Binding SkipFirstPointInCycleCode, Mode=TwoWay}"
+                                          FontSize="12.5" Cursor="Hand" />      
+                            </Border>
+
+                            <Border Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8"
+                                    Visibility="{Binding PatternResult.HasWarning, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding PatternResult.WarningMessage}" Foreground="#E65100" FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock Text="{Binding PatternResult.ErrorMessage}"
+                                       Foreground="#C62828"
+                                       FontSize="12.5"
+                                       TextWrapping="Wrap" />   
+                        </StackPanel>
+
+                        <!-- ПРАВАЯ КОЛОНКА КАРТОЧКИ 1 -->
+                        <StackPanel Grid.Column="2">
+                            <!-- БЛОК 1.5: Векторный эскиз плоскости XY (Canvas 320x200) -->
+                            <Border Background="#FAFAFA" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8"
+                                    Height="225" Margin="0,0,0,12">
+                                <Grid>
+                                    <TextBlock Text="Схема расположения отверстий (плоскость XY)" FontSize="11" Foreground="#78909C" Margin="10,6,0,0" VerticalAlignment="Top" />
+
+                                    <Canvas Width="320" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                            Visibility="{Binding PatternResult.IsValid, Converter={StaticResource BoolToVis}}">
+
+                                        <!-- Оси X и Y через базовую точку -->
+                                        <Line X1="14" Y1="{Binding PatternResult.CanvasCenterY}" X2="306" Y2="{Binding PatternResult.CanvasCenterY}"
+                                              Stroke="#90A4AE" StrokeThickness="1" StrokeDashArray="6 3" />
+                                        <Line X1="{Binding PatternResult.CanvasCenterX}" Y1="12" X2="{Binding PatternResult.CanvasCenterX}" Y2="188"
+                                              Stroke="#90A4AE" StrokeThickness="1" StrokeDashArray="6 3" />
+                                        <!-- Маркер центра окружности / базовой точки сетки и подпись координат -->
+                                        <Ellipse Width="7" Height="7" Fill="#2E7D32" Stroke="White" StrokeThickness="1.2"
+                                                 Canvas.Left="{Binding PatternResult.CanvasCenterX}"
+                                                 Canvas.Top="{Binding PatternResult.CanvasCenterY}"
+                                                 Margin="-3.5,-3.5,0,0" />
+
+                                        <Border Canvas.Left="{Binding PatternResult.CenterLabelX}"
+                                                Canvas.Top="{Binding PatternResult.CenterLabelY}"
+                                                Background="#E6FFFFFF" CornerRadius="3" Padding="3,1">
+                                            <TextBlock Text="{Binding PatternResult.CenterLabelText}"
+                                                FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#2E7D32" />
+                                        </Border>
+
+                                        <!-- Делительная окружность (только для режима PCD) -->
+                                        <Ellipse Visibility="{Binding PatternResult.IsCircleMode, Converter={StaticResource BoolToVis}}"
+                                                 Canvas.Left="{Binding PatternResult.CanvasCircleLeft}"
+                                                 Canvas.Top="{Binding PatternResult.CanvasCircleTop}"
+                                                 Width="{Binding PatternResult.CanvasCircleDiameter}"
+                                                 Height="{Binding PatternResult.CanvasCircleDiameter}"
+                                                 Stroke="#1565C0" StrokeThickness="1.3" StrokeDashArray="4 3" />
+
+                                        <!-- Линия траектории переходов между отверстиями -->
+                                        <Polyline Points="{Binding PatternResult.PathPolylinePoints}"
+                                                  Stroke="#EF6C00" StrokeThickness="1.3" StrokeDashArray="3 2" />
+
+                                        <!-- Точки отверстий и их номера -->
+                                        <ItemsControl ItemsSource="{Binding PatternResult.CanvasDots}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <Canvas />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemContainerStyle>
+                                                <Style TargetType="ContentPresenter">
+                                                    <Setter Property="Canvas.Left" Value="{Binding CanvasX}" />
+                                                    <Setter Property="Canvas.Top" Value="{Binding CanvasY}" />
+                                                </Style>
+                                            </ItemsControl.ItemContainerStyle>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Canvas>
+                                                        <Ellipse Width="8" Height="8" Fill="#1565C0" Stroke="White" StrokeThickness="1.2" Margin="-4,-4,0,0" />
+                                                        <TextBlock Text="{Binding Label}" Canvas.Left="5" Canvas.Top="-13"
+                                                                    FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#263238" />
+                                                    </Canvas>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </Canvas>
+                                </Grid>
+                            </Border>
+
+                            <!-- БЛОК 1.6: Сводные метрики, таблица координат DataGrid и G-код -->
+                            <StackPanel Visibility="{Binding PatternResult.IsValid, Converter={StaticResource BoolToVis}}">
+                                <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Всего отверстий:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding PatternResult.TotalHolesCount, StringFormat='{}{0} шт'}"
+                                                        FontSize="13.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4"
+                                                    Visibility="{Binding PatternResult.IsCircleMode, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="Угловой шаг между отверстиями:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding PatternResult.StepAngleDeg, StringFormat='{}{0:0.###}°'}"
+                                                        FontSize="13.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Расстояние (хорда) между соседними центрами:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding PatternResult.MinPitchMm, StringFormat='{}{0:0.###} мм'}"
+                                                        FontSize="13.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel>
+                                            <TextBlock Text="Суммарный путь переходов G00:" FontSize="13" Foreground="#546E7A" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding PatternResult.TotalRapidTravelMm, StringFormat='{}{0:0.##} мм'}"
+                                                        FontSize="13.5" FontWeight="SemiBold" Foreground="#E65100" HorizontalAlignment="Right" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="White" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8" Padding="8" Margin="0,0,0,10" MaxHeight="160">
+                                    <DataGrid ItemsSource="{Binding PatternResult.Points}"
+                                              AutoGenerateColumns="False"
+                                              IsReadOnly="True"
+                                              CanUserAddRows="False"
+                                              HeadersVisibility="Column"
+                                              GridLinesVisibility="Horizontal"
+                                              FontSize="12.5">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="№" Binding="{Binding Index}" Width="45" />
+                                            <DataGridTextColumn Header="X (мм)" Binding="{Binding X, StringFormat='{}{0:0.###}'}" Width="*" />
+                                            <DataGridTextColumn Header="Y (мм)" Binding="{Binding Y, StringFormat='{}{0:0.###}'}" Width="*" />
+                                            <DataGridTextColumn Header="Угол / Поз." Binding="{Binding AngleText}" Width="90" />
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </Border>
+
+                                <Border Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Command="{Binding CopyPatternGCodeCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Height="30" Padding="10,0" VerticalAlignment="Top" Cursor="Hand"
+                                                ToolTip="Скопировать список координат X/Y для цикла ЧПУ">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="ContentCopy" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                                <TextBlock Text="Копировать" FontSize="12" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding PatternResult.GCodeSnippet}"
+                                                        FontFamily="Consolas" FontSize="12.5" FontWeight="Bold" Foreground="#1B5E20" />
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- КАРТОЧКА 2: ВИНТОВОЕ ВРЕЗАНИЕ И РАСФРЕЗЕРОВКА ОТВЕРСТИЙ (HELICAL INTERPOLATION) -->
+            <materialDesign:Card Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <TextBlock Text="2. Винтовое врезание и расфрезеровка отверстий (Винтовая интерполяция)"
+                                   FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                        <Border DockPanel.Dock="Right" Background="#E3F2FD" CornerRadius="6" Padding="10,4">
+                            <TextBlock Text="{Binding HelicalResult.RampAngleDeg, StringFormat='Угол спирали α: {0:0.##}°'}"
+                                       FontSize="12" FontWeight="Bold" Foreground="#1565C0" />
+                        </Border>
+                    </DockPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="460" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ЛЕВАЯ КОЛОНКА КАРТОЧКИ 2 -->
+                        <StackPanel Grid.Column="0">
+                            <!-- БЛОК 2.1: Переключатели направления (G02/G03) и зачистного витка -->
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Встречное (G02)" FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsHelicalClimbMilling, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                        <TextBlock Grid.Column="2" Text="Попутное (G03)" FontSize="12.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    </Grid>
+
+                                    <CheckBox Content="Добавить плоский зачистной виток по дну отверстия"
+                  IsChecked="{Binding IncludeHelicalBottomCleanup, Mode=TwoWay}"
+                  FontSize="12.5" Cursor="Hand" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- БЛОК 2.2: Геометрические параметры отверстия, фрезы и координат X/Y/Z -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="95" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding HelicalHoleDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Отверстие D_отв (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding HelicalToolDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Фреза D_фр (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding HelicalFluteCountText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsInteger="True"
+                                         materialDesign:HintAssist.Hint="Зубьев z"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="2" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding HelicalCenterXText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Центр X0 (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="9" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding HelicalCenterYText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Центр Y0 (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="9" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding HelicalStartZText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Старт Z_нач (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding HelicalTargetZText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Глубина Z_кон (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding HelicalClearanceRText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Отвод R (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="6" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <!-- БЛОК 2.3: Автоподбор режимов по материалу ISO 513 и пресеты интенсивности -->
+                            <Border Background="#F5F7F8" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                                <CheckBox Content="Автоматически подобрать угол α, S и подачу Vf по материалу"
+                                          IsChecked="{Binding AutoCalculateHelicalParams, Mode=TwoWay}"
+                                          FontSize="12.5" Cursor="Hand" />
+                            </Border>
+
+                            <StackPanel Visibility="{Binding AutoCalculateHelicalParams, Converter={StaticResource BoolToVis}}" Margin="0,0,0,6">
+                                <ItemsControl ItemsSource="{Binding IsoGroups}" Margin="0,0,0,8">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.SelectHelicalIsoGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="{Binding BadgeColor}" BorderBrush="{Binding BadgeColor}" Foreground="White"
+                                                    Height="32" Margin="0,0,4,0" Padding="0" FontSize="13.5" FontWeight="Bold" Cursor="Hand" ToolTip="{Binding Name}">
+                                                <TextBlock Text="{Binding CodeLetter}" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Border Background="{Binding SelectedHelicalIsoGroup.BadgeBackground}"
+                                        BorderBrush="{Binding SelectedHelicalIsoGroup.BadgeColor}"
+                                        BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="{Binding SelectedHelicalIsoGroup.BadgeColor}" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding SelectedHelicalIsoGroup.CodeLetter}" Foreground="White" FontWeight="Bold" FontSize="11.5"
+                                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding SelectedHelicalIsoGroup.Name}" FontSize="12" FontWeight="SemiBold" Foreground="#263238" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ComboBox Grid.Column="0"
+                                              ItemsSource="{Binding FilteredHelicalGrades}"
+                                              SelectedItem="{Binding SelectedHelicalMaterial}"
+                                              materialDesign:HintAssist.Hint="Конкретная марка (необязательно)"
+                                              Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding GostGrade}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                    <TextBlock Text="{Binding DinGrade, StringFormat='({0})'}" Foreground="#78909C" FontSize="11.5" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                                    <Button Grid.Column="1" Content="✕" Command="{Binding ClearHelicalGradeCommand}"
+                                            Visibility="{Binding HasSelectedHelicalMaterial, Converter={StaticResource BoolToVis}}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Width="36" Height="36" Padding="0" Margin="8,0,0,0" Cursor="Hand" />
+                                </Grid>
+
+                                <TextBlock Text="Интенсивность режимов:" FontSize="12" Foreground="#546E7A" Margin="0,10,0,6" />
+                                <UniformGrid Columns="3" Margin="0,0,0,6">
+                                    <Button Content="Щадящий" Command="{Binding SelectHelicalIntensityCommand}" CommandParameter="Gentle"
+                                            Background="{Binding HelicalGentleBg}" Foreground="{Binding HelicalGentleFg}"
+                                            Style="{StaticResource   MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="Оптимальный" Command="{Binding SelectHelicalIntensityCommand}" CommandParameter="Optimal"
+                                            Background="{Binding HelicalOptimalBg}" Foreground="{Binding HelicalOptimalFg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="Форсированный" Command="{Binding SelectHelicalIntensityCommand}" CommandParameter="Aggressive"
+                                            Background="{Binding HelicalAggressiveBg}" Foreground="{Binding HelicalAggressiveFg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                </UniformGrid>
+                                <TextBlock Text="{Binding HelicalIntensityNote}" FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="2,0,0,4" />
+                            </StackPanel>
+
+                            <!-- БЛОК 2.4: Поля угла врезания α, подачи Vf, оборотов S, предупреждения и ошибки -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding HelicalRampAngleText, UpdateSourceTrigger=PropertyChanged}"
+                                         IsReadOnly="{Binding AutoCalculateHelicalParams}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Угол врезания α (°)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="6" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding HelicalEdgeFeedText, UpdateSourceTrigger=PropertyChanged}"
+                                         IsReadOnly="{Binding AutoCalculateHelicalParams}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Подача Vf кромки"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="7" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding HelicalSpindleRpmText, UpdateSourceTrigger=PropertyChanged}"
+                                         IsReadOnly="{Binding AutoCalculateHelicalParams}"
+                                         core:NumericInputBehavior.IsInteger="True"
+                                         materialDesign:HintAssist.Hint="Обороты S"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="6" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Border Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8"
+                                    Visibility="{Binding HelicalResult.HasWarning, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding HelicalResult.WarningMessage}" Foreground="#E65100" FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock Text="{Binding HelicalResult.ErrorMessage}" Foreground="#C62828" FontSize="12.5" TextWrapping="Wrap" />
+
+                        </StackPanel>
+
+                        <!-- ПРАВАЯ КОЛОНКА КАРТОЧКИ 2 -->
+                        <StackPanel Grid.Column="2">
+                            <!-- БЛОК 2.5: Векторный эскиз винтовой интерполяции (Canvas 320x200) -->
+                            <Border Background="#FAFAFA" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8"
+                                    Height="225" Margin="0,0,0,12">
+                                <Grid>
+                                    <TextBlock Text="Схема винтовой интерполяции (вид сверху XY)" FontSize="11" Foreground="#78909C" Margin="10,6,0,0" VerticalAlignment="Top" />
+
+                                    <Canvas Width="320" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                            Visibility="{Binding HelicalResult.IsValid, Converter={StaticResource BoolToVis}}">
+
+                                        <!-- Целевое отверстие D_отв -->
+                                        <Ellipse Canvas.Left="{Binding HelicalResult.HoleCircleLeft}"
+                                                 Canvas.Top="{Binding HelicalResult.HoleCircleTop}"
+                                                 Width="{Binding HelicalResult.HoleCircleDiaPx}"
+                                                 Height="{Binding HelicalResult.HoleCircleDiaPx}"
+                                                 Fill="#141565C0" Stroke="#455A64" StrokeThickness="2" />
+
+                                        <!-- Предупреждающая зона несрезанного центрального стержня при D_отв > 2*D_фр -->
+                                        <Ellipse Visibility="{Binding HelicalResult.ShowCoreWarningZone, Converter={StaticResource BoolToVis}}"
+                                                 Canvas.Left="{Binding HelicalResult.CoreCircleLeft}"
+                                                 Canvas.Top="{Binding HelicalResult.CoreCircleTop}"
+                                                 Width="{Binding HelicalResult.CoreCircleDiaPx}"
+                                                 Height="{Binding HelicalResult.CoreCircleDiaPx}"
+                                                 Fill="#33D32F2F" Stroke="#D32F2F" StrokeThickness="1.3" StrokeDashArray="3 2" />
+
+                                        <!-- Орбита центра фрезы (диаметр D_отв - D_фр) -->
+                                        <Ellipse Canvas.Left="{Binding HelicalResult.OrbitCircleLeft}"
+                                                 Canvas.Top="{Binding HelicalResult.OrbitCircleTop}"
+                                                 Width="{Binding HelicalResult.OrbitCircleDiaPx}"
+                                                 Height="{Binding HelicalResult.OrbitCircleDiaPx}"
+                                                 Stroke="#1565C0" StrokeThickness="1.5" StrokeDashArray="5 3" />
+
+                                        <!-- Контур концевой фрезы в стартовой позиции -->
+                                        <Ellipse Canvas.Left="{Binding HelicalResult.ToolCircleLeft}"
+                                                 Canvas.Top="{Binding HelicalResult.ToolCircleTop}"
+                                                 Width="{Binding HelicalResult.ToolCircleDiaPx}"
+                                                 Height="{Binding HelicalResult.ToolCircleDiaPx}"
+                                                 Fill="#33EF6C00" Stroke="#EF6C00" StrokeThickness="1.8" />
+
+                                        <!-- Вектор радиуса орбиты I -->
+                                        <Line X1="{Binding HelicalResult.OrbitCenterX}" Y1="{Binding HelicalResult.OrbitCenterY}"
+                                              X2="{Binding HelicalResult.ToolCenterX}" Y2="{Binding HelicalResult.ToolCenterY}"
+                                              Stroke="#2E7D32" StrokeThickness="1.5" />
+                                        <Ellipse Width="6" Height="6" Fill="#2E7D32" Canvas.Left="157" Canvas.Top="97" />
+                                        
+                                        <Ellipse Width="6" Height="6" Fill="#EF6C00"
+                                                    Canvas.Left="{Binding HelicalResult.ToolCenterX}" Canvas.Top="{Binding HelicalResult.ToolCenterY}" Margin="-3,-3,0,0" />
+
+                                        <!-- Подписи на эскизе -->
+                                        <TextBlock Text="{Binding HelicalResult.HoleDiaLabelText}" Canvas.Left="10" Canvas.Top="16"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#263238" />
+                                        <TextBlock Text="{Binding HelicalResult.ToolDiaLabelText}" Canvas.Left="210" Canvas.Top="16"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#E65100" />
+                                        <TextBlock Text="{Binding HelicalResult.OrbitRadLabelText}" Canvas.Left="164" Canvas.Top="82"
+                                                    FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#2E7D32" />
+                                    </Canvas>
+                                </Grid>
+                            </Border>
+
+                            <!-- БЛОК 2.6: Расчётные параметры орбиты, подачи центра фрезы, времени Tм и G-код -->
+                            <StackPanel Visibility="{Binding HelicalResult.IsValid, Converter={StaticResource BoolToVis}}">
+                                <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Диаметр / радиус орбиты центра фрезы:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" FontSize="13.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="Ø{0:0.###} мм  (R = {1:0.###} мм)">
+                                                        <Binding Path="HelicalResult.HelicalOrbitDiameter" />
+                                                        <Binding Path="HelicalResult.HelicalOrbitRadius" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Число витков спирали / шаг за оборот (360°):" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" FontSize="13.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Right">
+                                                <TextBlock.Text>
+                                                    <MultiBinding StringFormat="{}{0} вит. × {1:0.###} мм">
+                                                        <Binding Path="HelicalResult.FullRevolutionsCount" />
+                                                        <Binding Path="HelicalResult.ActualPitchPerRevMm" />
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Подача центра фрезы (для кадра G02/G03):" FontSize="13" FontWeight="SemiBold" Foreground="#E65100" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding HelicalResult.CenterFeedPerMin, StringFormat='F{0:0.#} мм/мин'}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#E65100" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel>
+                                            <TextBlock Text="Машинное время врезания T_м:" FontSize="13" FontWeight="SemiBold" Foreground="#2E7D32" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding HelicalResult.MachiningTimeText}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Right" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Command="{Binding CopyHelicalGCodeCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Height="30" Padding="10,0" VerticalAlignment="Top" Cursor="Hand"
+                                                ToolTip="Скопировать программу винтовой интерполяции">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="ContentCopy" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                                <TextBlock Text="G-код" FontSize="12" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <ScrollViewer MaxHeight="135" VerticalScrollBarVisibility="Auto" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding HelicalResult.GCodeSnippet}"
+                                                        FontFamily="Consolas" FontSize="12.5" FontWeight="Bold" Foreground="#1B5E20" />
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- КАРТОЧКА 3: РЕЗЬБОФРЕЗЕРОВАНИЕ И ЖЁСТКОЕ НАРЕЗАНИЕ МЕТЧИКОМ G84 -->
+            <materialDesign:Card Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <TextBlock Text="3. Резьбофрезерование и жёсткое нарезание метчиком (G84)"
+                                   FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                        <Border DockPanel.Dock="Right" Background="#ECEFF1" CornerRadius="6" Padding="10,4">
+                            <TextBlock Text="{Binding Card3BadgeText}"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="#37474F" />
+                        </Border>
+                    </DockPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="460" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ЛЕВАЯ КОЛОНКА КАРТОЧКИ 3 -->
+                        <StackPanel Grid.Column="0">
+                            <!-- БЛОК 3.1: Главный переключатель Метчик G84 / Резьбофреза и параметры резьбы -->
+                            <Border Background="#E3F2FD" BorderBrush="#90CAF9" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Метчик (M29 + G84)" FontSize="12.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsThreadMillingMode, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                    <TextBlock Grid.Column="2" Text="Резьбофреза (G02/G03)" FontSize="12.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Внутренняя резьба" FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsExternalMillingThread, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                        <TextBlock Grid.Column="2" Text="Наружная резьба" FontSize="12.5" FontWeight="SemiBold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    </Grid>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Правая (RH)" FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsLeftHandMillingThread, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                        <TextBlock Grid.Column="2" Text="Левая (LH)" FontSize="12.5" FontWeight="SemiBold" Foreground="#E65100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="Быстрый выбор метрической резьбы (ГОСТ 24705):" FontSize="12" Foreground="#546E7A" Margin="0,0,0,6" />
+                            <UniformGrid Columns="5" Margin="0,0,0,10">
+                                <Button Content="M6×1" Command="{Binding SelectThreadPresetCommand}" CommandParameter="6x1"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                <Button Content="M8×1.25" Command="{Binding SelectThreadPresetCommand}" CommandParameter="8x1.25"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                <Button Content="M10×1.5" Command="{Binding SelectThreadPresetCommand}" CommandParameter="10x1.5"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                <Button Content="M12×1.75" Command="{Binding SelectThreadPresetCommand}" CommandParameter="12x1.75"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                <Button Content="M16×2" Command="{Binding SelectThreadPresetCommand}" CommandParameter="16x2"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                            </UniformGrid>
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ThreadDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Номинальный диаметр D (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ThreadPitchText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Шаг резьбы P (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="7" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <!-- БЛОК 3.2: Параметры резьбофрезы и координат X/Y/Z -->
+                            <Grid Margin="0,0,0,10"
+                                    Visibility="{Binding IsThreadMillingMode, Converter={StaticResource BoolToVis}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ThreadMillDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Диаметр резьбофрезы D_фр (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ThreadMillFlutesText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsInteger="True"
+                                         materialDesign:HintAssist.Hint="Число зубьев фрезы z"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="2" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ThreadCenterXText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Центр резьбы X0 (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="9" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ThreadCenterYText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Центр резьбы Y0 (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="9" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ThreadStartZText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Старт Z_нач (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ThreadTargetZText, UpdateSourceTrigger=PropertyChanged}"
+                                         materialDesign:HintAssist.Hint="Глубина Z_кон (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="4"
+                                         Text="{Binding ThreadClearanceRText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Отвод R (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="6" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <!-- БЛОК 3.3: Автоподбор режимов по ISO 513, интенсивность, поля S и Vf, ошибки -->
+                            <Border Background="#F5F7F8" CornerRadius="6" Padding="10,8" Margin="0,0,0,10">
+                                <CheckBox Content="Автоматически подобрать обороты S и подачу Vf по материалу"
+              IsChecked="{Binding AutoCalculateThreadParams, Mode=TwoWay}"
+              FontSize="12.5" Cursor="Hand" />
+                            </Border>
+
+                            <StackPanel Visibility="{Binding AutoCalculateThreadParams, Converter={StaticResource BoolToVis}}" Margin="0,0,0,6">
+                                <ItemsControl ItemsSource="{Binding IsoGroups}" Margin="0,0,0,8">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="6" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.SelectThreadIsoGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}"
+                        Background="{Binding BadgeColor}" BorderBrush="{Binding BadgeColor}" Foreground="White"
+                        Height="32" Margin="0,0,4,0" Padding="0" FontSize="13.5" FontWeight="Bold" Cursor="Hand" ToolTip="{Binding Name}">
+                                                <TextBlock Text="{Binding CodeLetter}" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Border Background="{Binding SelectedThreadIsoGroup.BadgeBackground}"
+            BorderBrush="{Binding SelectedThreadIsoGroup.BadgeColor}"
+            BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border Background="{Binding SelectedThreadIsoGroup.BadgeColor}" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding SelectedThreadIsoGroup.CodeLetter}" Foreground="White" FontWeight="Bold" FontSize="11.5"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding SelectedThreadIsoGroup.Name}" FontSize="12" FontWeight="SemiBold" Foreground="#263238" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <ComboBox Grid.Column="0"
+                  ItemsSource="{Binding FilteredThreadGrades}"
+                  SelectedItem="{Binding SelectedThreadMaterial}"
+                  materialDesign:HintAssist.Hint="Конкретная марка (необязательно)"
+                  Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding GostGrade}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                                    <TextBlock Text="{Binding DinGrade, StringFormat='({0})'}" Foreground="#78909C" FontSize="11.5" VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+
+                                    <Button Grid.Column="1" Content="✕" Command="{Binding ClearThreadGradeCommand}"
+                                            Visibility="{Binding HasSelectedThreadMaterial, Converter={StaticResource BoolToVis}}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Width="36" Height="36" Padding="0" Margin="8,0,0,0" Cursor="Hand" />
+                                </Grid>
+
+                                <TextBlock Text="Интенсивность режимов:" FontSize="12" Foreground="#546E7A" Margin="0,10,0,6" />
+                                <UniformGrid Columns="3" Margin="0,0,0,6">
+                                    <Button Content="Щадящий" Command="{Binding SelectThreadIntensityCommand}" CommandParameter="Gentle"
+                                            Background="{Binding ThreadGentleBg}" Foreground="{Binding ThreadGentleFg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="Оптимальный" Command="{Binding SelectThreadIntensityCommand}" CommandParameter="Optimal"
+                                            Background="{Binding ThreadOptimalBg}" Foreground="{Binding ThreadOptimalFg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0,0,4,0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                    <Button Content="Форсированный" Command="{Binding SelectThreadIntensityCommand}" CommandParameter="Aggressive"
+                                            Background="{Binding ThreadAggressiveBg}" Foreground="{Binding ThreadAggressiveFg}"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="30" Margin="0" Padding="0" FontSize="12" FontWeight="Bold" Cursor="Hand" />
+                                </UniformGrid>
+                                <TextBlock Text="{Binding ThreadIntensityNote}" FontSize="11.5" Foreground="#546E7A" TextWrapping="Wrap" Margin="2,0,0,4" />
+                            </StackPanel>
+
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ThreadSpindleRpmText, UpdateSourceTrigger=PropertyChanged}"
+                                         IsReadOnly="{Binding AutoCalculateThreadParams}"
+                                         core:NumericInputBehavior.IsInteger="True"
+                                         materialDesign:HintAssist.Hint="Обороты шпинделя S (об/мин)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="6" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ThreadEdgeFeedText, UpdateSourceTrigger=PropertyChanged}"
+                                         Visibility="{Binding IsThreadMillingMode, Converter={StaticResource BoolToVis}}"
+                                         IsReadOnly="{Binding AutoCalculateThreadParams}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Подача Vf кромки (мм/мин)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="7" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <Border Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8"
+                                    Visibility="{Binding MillingThreadResult.HasWarning, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding MillingThreadResult.WarningMessage}" Foreground="#E65100" FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock Text="{Binding MillingThreadResult.ErrorMessage}" Foreground="#C62828" FontSize="12.5" TextWrapping="Wrap" />
+
+                        </StackPanel>
+
+                        <!-- ПРАВАЯ КОЛОНКА КАРТОЧКИ 3 -->
+                        <StackPanel Grid.Column="2">
+                            <!-- БЛОК 3.4: Векторный эскиз резьбообработки (Canvas 320x200) -->
+                            <Border Background="#FAFAFA" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8"
+                                    Height="225" Margin="0,0,0,12">
+                                <Grid>
+                                    <TextBlock Text="Схема резьбообработки (вид сверху XY)" FontSize="11" Foreground="#78909C" Margin="10,6,0,0" VerticalAlignment="Top" />
+
+                                    <Canvas Width="320" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                            Visibility="{Binding MillingThreadResult.IsValid, Converter={StaticResource BoolToVis}}">
+
+                                        <!-- Номинальный наружный контур резьбы D -->
+                                        <Ellipse Canvas.Left="{Binding MillingThreadResult.ThreadCircleLeft}"
+                                                 Canvas.Top="{Binding MillingThreadResult.ThreadCircleTop}"
+                                                 Width="{Binding MillingThreadResult.ThreadCircleDiaPx}"
+                                                 Height="{Binding MillingThreadResult.ThreadCircleDiaPx}"
+                                                 Stroke="#1565C0" StrokeThickness="1.5" StrokeDashArray="4 3" />
+
+                                        <!-- Контур отверстия под резьбу / внутреннего диаметра d1 -->
+                                        <Ellipse Canvas.Left="{Binding MillingThreadResult.CoreCircleLeft}"
+                                                 Canvas.Top="{Binding MillingThreadResult.CoreCircleTop}"
+                                                 Width="{Binding MillingThreadResult.CoreCircleDiaPx}"
+                                                 Height="{Binding MillingThreadResult.CoreCircleDiaPx}"
+                                                 Fill="#14455A64" Stroke="#455A64" StrokeThickness="2" />
+
+                                        <!-- Инструмент (резьбофреза или метчик) -->
+                                        <Ellipse Canvas.Left="{Binding MillingThreadResult.ToolCircleLeft}"
+                                                 Canvas.Top="{Binding MillingThreadResult.ToolCircleTop}"
+                                                 Width="{Binding MillingThreadResult.ToolCircleDiaPx}"
+                                                 Height="{Binding MillingThreadResult.ToolCircleDiaPx}"
+                                                 Fill="#33EF6C00" Stroke="#EF6C00" StrokeThickness="1.8" />
+
+                                        <!-- Осевой центр -->
+                                        <Ellipse Width="6" Height="6" Fill="#2E7D32" Canvas.Left="157" Canvas.Top="97" />
+                                        <!-- Подпись координат центра резьбы -->
+                                        <Border Canvas.Left="165" Canvas.Top="103"
+                                                Background="#E6FFFFFF" CornerRadius="3" Padding="3,1">
+                                            <TextBlock Text="{Binding MillingThreadResult.CenterLabelText}"
+                                                FontFamily="Consolas" FontSize="10" FontWeight="Bold" Foreground="#2E7D32" />
+                                        </Border>
+                                        <!-- Подписи на эскизе -->
+                                        <TextBlock Text="{Binding MillingThreadResult.ThreadLabelText}" Canvas.Left="10" Canvas.Top="14"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#1565C0" />
+                                        <TextBlock Text="{Binding MillingThreadResult.ToolLabelText}" Canvas.Left="210" Canvas.Top="14"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#E65100" />
+                                        <TextBlock Text="{Binding MillingThreadResult.PreHoleLabelText}" Canvas.Left="10" Canvas.Top="178"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="SemiBold" Foreground="#37474F" />
+                                    </Canvas>
+                                </Grid>
+                            </Border>
+
+                            <!-- БЛОК 3.5: Сводные метрики, отверстие под резьбу, время Tм и G-код -->
+                            <StackPanel Visibility="{Binding MillingThreadResult.IsValid, Converter={StaticResource BoolToVis}}">
+                                <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Рекомендуемое отверстие под резьбу:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding MillingThreadResult.RecommendedPreHoleDiameter, StringFormat='Ø{0:0.##} мм'}"
+                                                        FontSize="13.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Стратегия обработки:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding MillingThreadResult.DirectionSummaryText}"
+                                                        FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Программируемая подача в УП (F):" FontSize="13" FontWeight="SemiBold" Foreground="#E65100" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding MillingThreadResult.ProgrammedFeedPerMin, StringFormat='F{0:0.##} мм/мин'}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#E65100" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel>
+                                            <TextBlock Text="Машинное время на 1 отверстие T_м:" FontSize="13" FontWeight="SemiBold" Foreground="#2E7D32" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding MillingThreadResult.MachiningTimeText}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Right" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1" CornerRadius="8" Padding="10">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Command="{Binding CopyMillingThreadGCodeCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                Height="30" Padding="10,0" VerticalAlignment="Top" Cursor="Hand"
+                                                ToolTip="Скопировать фрагмент УП для нарезания резьбы">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="ContentCopy" Width="14" Height="14" VerticalAlignment="Center" Margin="0,0,5,0" />
+                                                <TextBlock Text="G-код" FontSize="12" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <ScrollViewer MaxHeight="135" VerticalScrollBarVisibility="Auto" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding MillingThreadResult.GCodeSnippet}"
+                                                        FontFamily="Consolas" FontSize="12.5" FontWeight="Bold" Foreground="#1B5E20" />
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </Border>
+                            </StackPanel>
+
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <!-- КАРТОЧКА 4: ВЫСОТА ГРЕБЕШКА 3D-ФРЕЗЕРОВАНИЯ (SCALLOP HEIGHT) -->
+            <materialDesign:Card Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,14">
+                        <TextBlock Text="4. Высота гребешка и шаг строчки 3D-фрезерования"
+                                   FontSize="16" FontWeight="Bold" Foreground="#263238" VerticalAlignment="Center" />
+                        <Border DockPanel.Dock="Right" Background="#ECEFF1" CornerRadius="6" Padding="10,4">
+                            <TextBlock Text="{Binding Card4BadgeText}"
+                                       FontSize="12" FontWeight="SemiBold" Foreground="#37474F" />
+                        </Border>
+                    </DockPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="460" />
+                            <ColumnDefinition Width="24" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ЛЕВАЯ КОЛОНКА КАРТОЧКИ 4 -->
+                        <StackPanel Grid.Column="0">
+                            <!-- БЛОК 4.1: Переключатели направления расчёта и типа фрезы (Ball Nose / Bull Nose) -->
+                            <Border Background="#E3F2FD" BorderBrush="#90CAF9" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="По чистоте → шаг ae" FontSize="12.5" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                    <CheckBox Grid.Column="1" IsChecked="{Binding IsByStepoverInput, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                    <TextBlock Grid.Column="2" Text="По шагу ae → чистота" FontSize="12.5" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <Border Background="#F5F7F9" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Сферическая (Ball Nose)" FontSize="12.5" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsBullNoseMillingTool, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                        <TextBlock Grid.Column="2" Text="Торовая (Bull Nose)" FontSize="12.5" FontWeight="SemiBold" Foreground="#1565C0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+                                    </Grid>
+
+                                    <Grid Visibility="{Binding IsByTargetRoughnessInput, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Высота гребешка h (мкм)" FontSize="12" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                        <CheckBox Grid.Column="1" IsChecked="{Binding IsTargetRaMode, Mode=TwoWay}" Style="{StaticResource MaterialDesignSwitchToggleButton}" VerticalAlignment="Center" Cursor="Hand" />
+                                        <TextBlock Grid.Column="2" Text="Шероховатость Ra (мкм)" FontSize="12" FontWeight="SemiBold" Foreground="#E65100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- БЛОК 4.2: Параметры фрезы, пресеты чистоты и поля ввода ae / h / Vf -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="12" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBox Grid.Column="0"
+                                         Text="{Binding ScallopToolDiameterText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Диаметр фрезы D (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ScallopCornerRadiusText, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsBullNoseMillingTool}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="Радиус при вершине r (мм)"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </Grid>
+
+                            <!-- Вариант ввода 1: По целевой чистоте (h / Ra) -->
+                            <StackPanel Visibility="{Binding IsByTargetRoughnessInput, Converter={StaticResource BoolToVis}}" Margin="0,0,0,12">
+                                <TextBlock Text="Быстрый выбор значения (мкм):" FontSize="12" Foreground="#546E7A" Margin="0,0,0,6" />
+                                <UniformGrid Columns="5" Margin="0,0,0,8">
+                                    <Button Content="1.6" Command="{Binding SelectScallopTargetPresetCommand}" CommandParameter="1.6"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                    <Button Content="3.2" Command="{Binding SelectScallopTargetPresetCommand}" CommandParameter="3.2"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                    <Button Content="5" Command="{Binding SelectScallopTargetPresetCommand}" CommandParameter="5"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                    <Button Content="10" Command="{Binding SelectScallopTargetPresetCommand}" CommandParameter="10"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0,0,3,0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                    <Button Content="20" Command="{Binding SelectScallopTargetPresetCommand}" CommandParameter="20"
+                                            Style="{StaticResource MaterialDesignOutlinedButton}" Height="28" Margin="0" Padding="0" FontSize="11.5" FontWeight="SemiBold" Cursor="Hand" />
+                                </UniformGrid>
+
+                                <TextBox Text="{Binding ScallopTargetMicronsText, UpdateSourceTrigger=PropertyChanged}"
+                                         core:NumericInputBehavior.IsDecimal="True"
+                                         materialDesign:HintAssist.Hint="{Binding ScallopTargetInputHint}"
+                                         materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                         MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" />
+                            </StackPanel>
+
+                            <!-- Вариант ввода 2: По заданному шагу строчки ae -->
+                            <TextBox Visibility="{Binding IsByStepoverInput, Converter={StaticResource BoolToVis}}"
+                                     Text="{Binding ScallopInputStepoverAeText, UpdateSourceTrigger=PropertyChanged}"
+                                     core:NumericInputBehavior.IsDecimal="True"
+                                     materialDesign:HintAssist.Hint="Шаг строчки между проходами ae (мм)"
+                                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                     MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,12" />
+
+                            <TextBox Text="{Binding ScallopFeedPerMinText, UpdateSourceTrigger=PropertyChanged}"
+                                     core:NumericInputBehavior.IsDecimal="True"
+                                     materialDesign:HintAssist.Hint="Рабочая подача Vf для оценки времени 100×100 мм (мм/мин)"
+                                     materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
+                                     MaxLength="8" Style="{StaticResource MaterialDesignOutlinedTextBox}" FontSize="14" Padding="10,8" Margin="0,0,0,12" />
+
+                            <Border Background="#FFF8E1" BorderBrush="#FFB300" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8"
+                                    Visibility="{Binding ScallopResult.HasWarning, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="{Binding ScallopResult.WarningMessage}" Foreground="#E65100" FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock Text="{Binding ScallopResult.ErrorMessage}" Foreground="#C62828" FontSize="12.5" TextWrapping="Wrap" />
+
+                        </StackPanel>
+
+                        <!-- ПРАВАЯ КОЛОНКА КАРТОЧКИ 4 -->
+                        <StackPanel Grid.Column="2">
+                            <!-- БЛОК 4.3: Векторный эскиз профиля гребешка (Canvas 320x200) -->
+                            <Border Background="#FAFAFA" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8"
+                                    Height="225" Margin="0,0,0,12">
+                                <Grid>
+                                    <TextBlock Text="Поперечный профиль остаточного гребешка (сечение)" FontSize="11" Foreground="#78909C" Margin="10,6,0,0" VerticalAlignment="Top" />
+
+                                    <Canvas Width="320" Height="200" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                            Visibility="{Binding ScallopResult.IsValid, Converter={StaticResource BoolToVis}}">
+
+                                        <!-- Профиль металла после двух соседних проходов фрезы -->
+                                        <Path Data="{Binding ScallopResult.MetalProfilePathData}"
+                                                Fill="#1E455A64" Stroke="#455A64" StrokeThickness="2" StrokeLineJoin="Round" />
+
+                                        <!-- Осевые линии двух соседних проходов (шаг ae) -->
+                                        <Line X1="{Binding ScallopResult.LeftToolCenterX}" Y1="26"
+                                              X2="{Binding ScallopResult.LeftToolCenterX}" Y2="162"
+                                              Stroke="#1565C0" StrokeThickness="1.2" StrokeDashArray="5 3" />
+                                        <Line X1="{Binding ScallopResult.RightToolCenterX}" Y1="26"
+                                              X2="{Binding ScallopResult.RightToolCenterX}" Y2="162"
+                                              Stroke="#1565C0" StrokeThickness="1.2" StrokeDashArray="5 3" />
+
+                                        <!-- Размерная линия шага строчки ae -->
+                                        <Line X1="{Binding ScallopResult.LeftToolCenterX}" Y1="36"
+                                              X2="{Binding ScallopResult.RightToolCenterX}" Y2="36"
+                                              Stroke="#1565C0" StrokeThickness="1.5" />
+
+                                        <!-- Горизонтальные уровни вершины и впадины гребешка (высота h) -->
+                                        <Line X1="52" Y1="{Binding ScallopResult.PeakLineY}"
+                                              X2="268" Y2="{Binding ScallopResult.PeakLineY}"
+                                              Stroke="#E65100" StrokeThickness="1.1" StrokeDashArray="3 2" />
+                                        <Line X1="52" Y1="{Binding ScallopResult.ValleyLineY}"
+                                              X2="268" Y2="{Binding ScallopResult.ValleyLineY}"
+                                              Stroke="#2E7D32" StrokeThickness="1.1" StrokeDashArray="3 2" />
+
+                                        <!-- Вертикальный отрезок высоты гребешка h справа -->
+                                        <Line X1="260" Y1="{Binding ScallopResult.PeakLineY}"
+                                              X2="260" Y2="{Binding ScallopResult.ValleyLineY}"
+                                              Stroke="#E65100" StrokeThickness="2" />
+
+                                        <!-- Подписи на эскизе -->
+                                        <TextBlock Text="{Binding ScallopResult.StepoverLabelText}" Canvas.Left="118" Canvas.Top="18"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#1565C0" />
+                                        <TextBlock Text="{Binding ScallopResult.ScallopLabelText}" Canvas.Left="234" Canvas.Top="72"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="Bold" Foreground="#E65100" />
+                                        <TextBlock Text="{Binding ScallopResult.RadiusLabelText}" Canvas.Left="12" Canvas.Top="180"
+                                                    FontFamily="Consolas" FontSize="10.5" FontWeight="SemiBold" Foreground="#37474F" />
+                                    </Canvas>
+                                </Grid>
+                            </Border>
+
+                            <!-- БЛОК 4.4: Сводные метрики шага ae, гребешка h, Ra и времени на 100x100 мм -->
+                            <StackPanel Visibility="{Binding ScallopResult.IsValid, Converter={StaticResource BoolToVis}}">
+                                <Border Background="#FFF3E0" BorderBrush="#FFCC80" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                    <DockPanel>
+                                        <TextBlock Text="Шаг строчки между проходами ae:" FontSize="13.5" FontWeight="SemiBold" Foreground="#37474F" VerticalAlignment="Center" />
+                                        <TextBlock DockPanel.Dock="Right" FontSize="15" FontWeight="Bold" Foreground="#E65100" HorizontalAlignment="Right">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="{}{0:0.###} мм  ({1:0.#}% D)">
+                                                    <Binding Path="ScallopResult.StepoverAeMm" />
+                                                    <Binding Path="ScallopResult.StepoverPercent" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </DockPanel>
+                                </Border>
+
+                                <Border Background="#F5F7F8" BorderBrush="#CFD8DC" BorderThickness="1" CornerRadius="8" Padding="12">
+                                    <StackPanel>
+                                        <DockPanel Margin="0,0,0,6">
+                                            <TextBlock Text="Высота остаточного гребешка h:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ScallopResult.ScallopHeightMicrons, StringFormat='{}{0:0.##} мкм'}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#1565C0" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel Margin="0,0,0,6">
+                                            <TextBlock Text="Ожидаемая шероховатость поверхности:" FontSize="13" Foreground="#37474F" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ScallopResult.EstimatedRaMicrons, StringFormat='Ra ≈ {0:0.##} мкм'}"
+                                                      FontSize="14" FontWeight="Bold" Foreground="#263238" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <Border Background="#E8F5E9" BorderBrush="#A5D6A7" BorderThickness="1" CornerRadius="5" Padding="8,5" Margin="0,2,0,8">
+                                            <TextBlock Text="{Binding ScallopResult.SurfaceQualityClassText}"
+                                                        FontSize="12" FontWeight="SemiBold" Foreground="#1B5E20" TextWrapping="Wrap" />
+                                        </Border>
+
+                                        <Separator Margin="0,0,0,6" />
+
+                                        <DockPanel Margin="0,0,0,4">
+                                            <TextBlock Text="Длина траектории на участок 100×100 мм:" FontSize="12.5" Foreground="#546E7A" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ScallopResult.PathLengthPer100x100Meters, StringFormat='{}{0:0.##} м'}"
+                                                        FontSize="13" FontWeight="SemiBold" Foreground="#263238" HorizontalAlignment="Right" />
+                                        </DockPanel>
+
+                                        <DockPanel>
+                                            <TextBlock Text="Оценочное время обработки (100×100 мм):" FontSize="13" FontWeight="SemiBold" Foreground="#2E7D32" />
+                                            <TextBlock DockPanel.Dock="Right" Text="{Binding ScallopResult.MachiningTimePer100x100Text}"
+                                                        FontSize="14" FontWeight="Bold" Foreground="#2E7D32" HorizontalAlignment="Right" />
+                                        </DockPanel>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
