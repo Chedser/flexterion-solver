@@ -77,8 +77,8 @@
 
 ### Запуск из исходного кода
 ```bash
-git clone https://github.com<ваш-профиль>/<имя-репозитория>.git
-cd <имя-репозитория>
+git clone https://github.com/Chedser/flexterion-solver.git
+cd flexterion-solver
 dotnet restore
 dotnet run
 ```
