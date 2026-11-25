@@ -211,7 +211,7 @@
                             <ListBoxItem Padding="16,12" Cursor="Hand" IsEnabled="{Binding IsMillingCuttingReady}" Selected="OnMillingCuttingMenuSelected">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="SawBlade" Width="20" Height="20" Margin="0,0,12,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="Режимы резания и подача" VerticalAlignment="Center" />
+                                    <TextBlock Text="Режимы резания" VerticalAlignment="Center" />
                                 </StackPanel>
                             </ListBoxItem>
 
