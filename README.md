@@ -81,6 +81,24 @@ dotnet run
 
 ---
 
+### Публикация и создание установщика (Windows x64)
+
+Для распространения приложения на компьютеры без установленного .NET 9 Runtime выполняется автономная публикация (`Self-Contained`) с последующей упаковкой в инсталлятор:
+
+1. **Автономная сборка релиза:**
+   Запустите скрипт `publish.bat` в корне репозитория или выполните команду:
+   ```bash
+   dotnet publish MechCore.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./publish
+   ```
+   В результате в директории `./publish` будут собраны исполняемый файл `Flexterion.exe` и папка `Assets/GOSTs/` со справочной документацией.
+
+2. **Сборка установочного пакета (Inno Setup):**
+   * Установите [Inno Setup 6](https://jrsoftware.org "Inno Setup download").
+   * Откройте файл сценария `installer.iss` в **Inno Setup Compiler** и запустите компиляцию (`Ctrl + F9`).
+   * Готовый установщик `Flexterion_Setup_v1.0.exe` будет сохранён в директории `./InstallerOutput/`.
+
+> 💡 **Для конечных пользователей:** готовый установочный файл можно скачать напрямую в разделе [Releases](https://github.com "Flexterion Releases") репозитория — установка .NET SDK для работы программы не требуется.
+
 ## 🤖 Разработка с участием ИИ
 
 Архитектура проекта, расчётные сервисы, рендеринг графиков и пользовательский интерфейс разработаны при активном содействии ИИ-ассистента **Google Gemini**.
