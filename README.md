@@ -97,7 +97,7 @@ dotnet run
    * Откройте файл сценария `installer.iss` в **Inno Setup Compiler** и запустите компиляцию (`Ctrl + F9`).
    * Готовый установщик `Flexterion_Setup_v1.0.exe` будет сохранён в директории `./InstallerOutput/`.
 
-<!-- > 💡 **Для конечных пользователей:** готовый установочный файл можно скачать напрямую в разделе [Releases]([https://github.com](https://github.com/Chedser/flexterion-solver/releases) "Flexterion Releases") репозитория — установка .NET SDK для работы программы не требуется. -->
+> 💡 **Для конечных пользователей:** готовый установочный файл можно скачать напрямую в разделе [Releases]([https://github.com](https://github.com/Chedser/flexterion-solver/releases) "Flexterion Releases") репозитория — установка .NET SDK для работы программы не требуется. 
 
 ## 🤖 Разработка с участием ИИ
 
